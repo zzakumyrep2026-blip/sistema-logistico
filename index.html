@@ -3360,7 +3360,88 @@ renderUbicaciones();
 
 
 </script>
+<style>
+#pantallaLogin {
+    position: fixed;
+    inset: 0;
+    background: #111827;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+    font-family: Arial, sans-serif;
+}
 
+#cajaLogin {
+    background: white;
+    width: 90%;
+    max-width: 380px;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    text-align: center;
+}
+
+#cajaLogin h2 {
+    margin-bottom: 25px;
+}
+
+#cajaLogin input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+#cajaLogin button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#mensajeLogin {
+    color: red;
+    margin-top: 15px;
+    display: none;
+}
+</style>
+
+<div id="pantallaLogin">
+    <div id="cajaLogin">
+        <h2>🔐 Acceso al sistema</h2>
+
+        <input type="text" id="usuarioLogin" placeholder="Usuario">
+
+        <input type="password" id="claveLogin" placeholder="Contraseña">
+
+        <button onclick="iniciarSesion()">INGRESAR</button>
+
+        <div id="mensajeLogin">
+            Usuario o contraseña incorrectos
+        </div>
+    </div>
+</div>
+
+<script>
+function iniciarSesion() {
+    const usuario = document.getElementById("usuarioLogin").value;
+    const clave = document.getElementById("claveLogin").value;
+
+    if (usuario === "admin" && clave === "031299") {
+        document.getElementById("pantallaLogin").style.display = "none";
+    } else {
+        document.getElementById("mensajeLogin").style.display = "block";
+    }
+}
+</script>
 </body>
 
 </html>

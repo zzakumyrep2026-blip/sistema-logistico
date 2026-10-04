@@ -1,0 +1,3366 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sistema de Logística</title>
+
+<style>
+
+/* =====================================================
+   GENERAL
+===================================================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:#f1f5f9;
+    color:#1e293b;
+}
+
+button,
+input,
+select{
+    font-family:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    width:240px;
+    height:100vh;
+    background:#0f172a;
+    color:white;
+    padding:22px 14px;
+    z-index:1000;
+}
+
+.logo{
+    text-align:center;
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:30px;
+}
+
+.logo span{
+    color:#38bdf8;
+}
+
+.menu{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.menu button{
+    width:100%;
+    border:0;
+    background:transparent;
+    color:#cbd5e1;
+    text-align:left;
+    padding:13px 15px;
+    border-radius:9px;
+    font-size:14px;
+    transition:.2s;
+}
+
+.menu button:hover{
+    background:#1e293b;
+    color:white;
+}
+
+.menu button.activo{
+    background:#2563eb;
+    color:white;
+}
+
+
+/* =====================================================
+   CONTENIDO
+===================================================== */
+
+.main{
+    margin-left:240px;
+    min-height:100vh;
+    padding:28px;
+}
+
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:28px;
+}
+
+header h1{
+    font-size:27px;
+}
+
+.usuario{
+    background:white;
+    padding:10px 15px;
+    border-radius:10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.05);
+}
+
+
+/* =====================================================
+   PÁGINAS
+===================================================== */
+
+.page{
+    display:none;
+}
+
+.page.activa{
+    display:block;
+}
+
+
+/* =====================================================
+   TARJETAS
+===================================================== */
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+    margin-bottom:25px;
+}
+
+.card{
+    background:white;
+    border-radius:14px;
+    padding:22px;
+    box-shadow:0 3px 14px rgba(0,0,0,.06);
+}
+
+.card-icon{
+    font-size:27px;
+    margin-bottom:13px;
+}
+
+.card-title{
+    color:#64748b;
+    font-size:13px;
+    margin-bottom:8px;
+}
+
+.card-number{
+    font-size:27px;
+    font-weight:bold;
+}
+
+.card-small{
+    margin-top:7px;
+    color:#64748b;
+    font-size:12px;
+}
+
+
+/* =====================================================
+   PANELES
+===================================================== */
+
+.panel{
+    background:white;
+    border-radius:14px;
+    padding:23px;
+    margin-bottom:22px;
+    box-shadow:0 3px 14px rgba(0,0,0,.06);
+}
+
+.panel-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.panel h2{
+    font-size:20px;
+}
+
+.panel h3{
+    font-size:17px;
+}
+
+
+/* =====================================================
+   BOTONES
+===================================================== */
+
+.btn{
+    border:0;
+    background:#2563eb;
+    color:white;
+    padding:11px 17px;
+    border-radius:8px;
+    font-size:14px;
+    transition:.2s;
+}
+
+.btn:hover{
+    background:#1d4ed8;
+}
+
+.btn-success{
+    background:#16a34a;
+}
+
+.btn-success:hover{
+    background:#15803d;
+}
+
+.btn-danger{
+    background:#dc2626;
+}
+
+.btn-danger:hover{
+    background:#b91c1c;
+}
+
+.btn-warning{
+    background:#ea580c;
+}
+
+.btn-warning:hover{
+    background:#c2410c;
+}
+
+.btn-secondary{
+    background:#64748b;
+}
+
+.btn-secondary:hover{
+    background:#475569;
+}
+
+.btn-small{
+    padding:7px 10px;
+    font-size:12px;
+}
+
+
+/* =====================================================
+   TABLAS
+===================================================== */
+
+.table-container{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    text-align:left;
+    background:#f8fafc;
+    padding:13px;
+    font-size:13px;
+    color:#475569;
+}
+
+td{
+    padding:13px;
+    border-top:1px solid #e2e8f0;
+    font-size:14px;
+}
+
+tr:hover td{
+    background:#f8fafc;
+}
+
+
+/* =====================================================
+   BADGES
+===================================================== */
+
+.badge{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.badge-green{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.badge-red{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.badge-orange{
+    background:#ffedd5;
+    color:#9a3412;
+}
+
+.badge-blue{
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+
+/* =====================================================
+   FORMULARIOS
+===================================================== */
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:17px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.form-group.full{
+    grid-column:1 / -1;
+}
+
+.form-group label{
+    font-size:13px;
+    font-weight:bold;
+    color:#334155;
+}
+
+.form-group input,
+.form-group select{
+    padding:11px 12px;
+    border:1px solid #cbd5e1;
+    border-radius:8px;
+    outline:none;
+    background:white;
+}
+
+.form-group input:focus,
+.form-group select:focus{
+    border-color:#2563eb;
+}
+
+
+/* =====================================================
+   BÚSQUEDA
+===================================================== */
+
+.search{
+    padding:10px 13px;
+    border:1px solid #cbd5e1;
+    border-radius:8px;
+    outline:none;
+    min-width:220px;
+}
+
+.search:focus{
+    border-color:#2563eb;
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.65);
+    z-index:2000;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.modal.visible{
+    display:flex;
+}
+
+.modal-content{
+    width:100%;
+    max-width:600px;
+    max-height:90vh;
+    overflow-y:auto;
+    background:white;
+    border-radius:15px;
+    padding:25px;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:22px;
+}
+
+.close{
+    border:0;
+    background:#f1f5f9;
+    width:35px;
+    height:35px;
+    border-radius:50%;
+    font-size:18px;
+}
+
+
+/* =====================================================
+   MOVIMIENTOS
+===================================================== */
+
+.movimiento-entrada{
+    color:#15803d;
+    font-weight:bold;
+}
+
+.movimiento-salida{
+    color:#dc2626;
+    font-weight:bold;
+}
+
+
+/* =====================================================
+   CONFIGURACIÓN
+===================================================== */
+
+.config-box{
+    max-width:700px;
+}
+
+.switch{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 0;
+    border-bottom:1px solid #e2e8f0;
+}
+
+
+/* =====================================================
+   ESTADO VACÍO
+===================================================== */
+
+.empty{
+    text-align:center;
+    padding:35px;
+    color:#64748b;
+}
+
+
+/* =====================================================
+   MODO OSCURO
+===================================================== */
+
+body.dark{
+    background:#020617;
+    color:#e2e8f0;
+}
+
+body.dark .panel,
+body.dark .card,
+body.dark .usuario,
+body.dark .modal-content{
+    background:#0f172a;
+    color:#e2e8f0;
+}
+
+body.dark th{
+    background:#1e293b;
+    color:#cbd5e1;
+}
+
+body.dark td{
+    border-color:#334155;
+}
+
+body.dark tr:hover td{
+    background:#1e293b;
+}
+
+body.dark .form-group label{
+    color:#cbd5e1;
+}
+
+body.dark .form-group input,
+body.dark .form-group select,
+body.dark .search{
+    background:#1e293b;
+    color:white;
+    border-color:#475569;
+}
+
+body.dark .card-title,
+body.dark .card-small{
+    color:#94a3b8;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media(max-width:1000px){
+
+    .cards{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+
+@media(max-width:700px){
+
+    .sidebar{
+        position:relative;
+        width:100%;
+        height:auto;
+    }
+
+    .menu{
+        display:grid;
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .main{
+        margin-left:0;
+        padding:18px;
+    }
+
+    header{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:12px;
+    }
+
+    .cards{
+        grid-template-columns:1fr;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .form-group.full{
+        grid-column:auto;
+    }
+
+    .panel-header{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .search{
+        width:100%;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     SIDEBAR
+===================================================== -->
+
+<aside class="sidebar">
+
+    <div class="logo">
+        📦 <span id="logoNombre">LOGISTICA</span>
+    </div>
+
+    <nav class="menu">
+
+        <button onclick="mostrarPagina('dashboard',this)" class="activo">
+            📊 Dashboard
+        </button>
+
+        <button onclick="mostrarPagina('productos',this)">
+            📦 Productos
+        </button>
+
+        <button onclick="mostrarPagina('stock',this)">
+            📈 Stock
+        </button>
+
+        <button onclick="mostrarPagina('ventas',this)">
+            🛒 Ventas
+        </button>
+
+        <button onclick="mostrarPagina('movimientos',this)">
+            🔄 Movimientos
+        </button>
+
+        <button onclick="mostrarPagina('ubicaciones',this)">
+            📍 Ubicaciones
+        </button>
+
+        <button onclick="mostrarPagina('configuracion',this)">
+            ⚙️ Configuración
+        </button>
+
+    </nav>
+
+</aside>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="main">
+
+
+<header>
+
+    <h1 id="tituloPagina">
+        Dashboard
+    </h1>
+
+    <div class="usuario">
+        👤 Administrador
+    </div>
+
+</header>
+
+
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+<section id="dashboard" class="page activa">
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-icon">
+                📦
+            </div>
+
+            <div class="card-title">
+                PRODUCTOS
+            </div>
+
+            <div class="card-number" id="dashProductos">
+                0
+            </div>
+
+            <div class="card-small">
+                Productos registrados
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-icon">
+                📊
+            </div>
+
+            <div class="card-title">
+                STOCK
+            </div>
+
+            <div class="card-number" id="dashStock">
+                0
+            </div>
+
+            <div class="card-small">
+                Unidades disponibles
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-icon">
+                🛒
+            </div>
+
+            <div class="card-title">
+                VENTAS
+            </div>
+
+            <div class="card-number" id="dashVentas">
+                0
+            </div>
+
+            <div class="card-small">
+                Ventas realizadas
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-icon">
+                ⚠️
+            </div>
+
+            <div class="card-title">
+                STOCK BAJO
+            </div>
+
+            <div class="card-number" id="dashBajo">
+                0
+            </div>
+
+            <div class="card-small">
+                Productos a revisar
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <h2>
+                📋 Últimos movimientos
+            </h2>
+
+            <button
+                class="btn btn-secondary btn-small"
+                onclick="mostrarPagina('movimientos')">
+
+                Ver todos
+
+            </button>
+
+        </div>
+
+        <div id="dashMovimientos">
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     PRODUCTOS
+===================================================== -->
+
+<section id="productos" class="page">
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>
+                    📦 Productos
+                </h2>
+
+                <p style="color:#64748b;margin-top:5px;">
+                    Administrá todos tus productos.
+                </p>
+
+            </div>
+
+            <button
+                class="btn"
+                onclick="abrirModalProducto()">
+
+                + Agregar producto
+
+            </button>
+
+        </div>
+
+
+        <input
+            class="search"
+            id="buscarProducto"
+            type="text"
+            placeholder="🔎 Buscar producto..."
+            oninput="renderProductos()">
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Código
+                        </th>
+
+                        <th>
+                            Producto
+                        </th>
+
+                        <th>
+                            Precio
+                        </th>
+
+                        <th>
+                            Stock
+                        </th>
+
+                        <th>
+                            Ubicación
+                        </th>
+
+                        <th>
+                            Estado
+                        </th>
+
+                        <th>
+                            Acciones
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tablaProductos">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     STOCK
+===================================================== -->
+
+<section id="stock" class="page">
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>
+                    📈 Control de Stock
+                </h2>
+
+                <p style="color:#64748b;margin-top:5px;">
+                    Agregá o retir&aacute; unidades.
+                </p>
+
+            </div>
+
+            <button
+                class="btn btn-success"
+                onclick="abrirModalStock()">
+
+                + Agregar stock
+
+            </button>
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Producto
+                        </th>
+
+                        <th>
+                            Código
+                        </th>
+
+                        <th>
+                            Stock actual
+                        </th>
+
+                        <th>
+                            Estado
+                        </th>
+
+                        <th>
+                            Acción
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tablaStock">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     VENTAS
+===================================================== -->
+
+<section id="ventas" class="page">
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>
+                    🛒 Ventas
+                </h2>
+
+                <p style="color:#64748b;margin-top:5px;">
+                    Registrá ventas y descontá stock automáticamente.
+                </p>
+
+            </div>
+
+            <button
+                class="btn"
+                onclick="abrirModalVenta()">
+
+                + Nueva venta
+
+            </button>
+
+        </div>
+
+
+        <div class="cards">
+
+            <div class="card">
+
+                <div class="card-title">
+                    TOTAL DE VENTAS
+                </div>
+
+                <div
+                    class="card-number"
+                    id="ventasCantidad">
+
+                    0
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    DINERO VENDIDO
+                </div>
+
+                <div
+                    class="card-number"
+                    id="ventasDinero">
+
+                    $0
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Fecha
+                        </th>
+
+                        <th>
+                            Producto
+                        </th>
+
+                        <th>
+                            Cantidad
+                        </th>
+
+                        <th>
+                            Precio
+                        </th>
+
+                        <th>
+                            Total
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tablaVentas">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     MOVIMIENTOS
+===================================================== -->
+
+<section id="movimientos" class="page">
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>
+                    🔄 Movimientos
+                </h2>
+
+                <p style="color:#64748b;margin-top:5px;">
+                    Historial de entradas y salidas.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Fecha
+                        </th>
+
+                        <th>
+                            Tipo
+                        </th>
+
+                        <th>
+                            Producto
+                        </th>
+
+                        <th>
+                            Cantidad
+                        </th>
+
+                        <th>
+                            Detalle
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tablaMovimientos">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     UBICACIONES
+===================================================== -->
+
+<section id="ubicaciones" class="page">
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>
+                    📍 Ubicaciones
+                </h2>
+
+                <p style="color:#64748b;margin-top:5px;">
+                    Productos organizados por ubicación.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div id="listaUbicaciones">
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     CONFIGURACIÓN
+===================================================== -->
+
+<section id="configuracion" class="page">
+
+    <div class="panel config-box">
+
+        <h2>
+            ⚙️ Configuración
+        </h2>
+
+        <br>
+
+
+        <div class="form-group">
+
+            <label>
+                Nombre del negocio
+            </label>
+
+            <input
+                id="configNombre"
+                type="text"
+                placeholder="Mi negocio">
+
+        </div>
+
+
+        <br>
+
+
+        <div class="form-group">
+
+            <label>
+                Moneda
+            </label>
+
+            <select id="configMoneda">
+
+                <option value="$">
+                    $ Peso
+                </option>
+
+                <option value="USD">
+                    USD
+                </option>
+
+                <option value="€">
+                    € Euro
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <br>
+
+
+        <div class="switch">
+
+            <span>
+                🌙 Modo oscuro
+            </span>
+
+            <button
+                class="btn btn-secondary"
+                onclick="cambiarTema()">
+
+                Cambiar tema
+
+            </button>
+
+        </div>
+
+
+        <br>
+
+
+        <button
+            class="btn btn-success"
+            onclick="guardarConfiguracion()">
+
+            💾 Guardar configuración
+
+        </button>
+
+    </div>
+
+
+
+    <div class="panel">
+
+        <h3>
+            ⚠️ Zona de datos
+        </h3>
+
+        <p style="color:#64748b;margin:10px 0 18px;">
+            Esta opción elimina todos los productos, ventas y movimientos guardados en este navegador.
+        </p>
+
+        <button
+            class="btn btn-danger"
+            onclick="borrarTodo()">
+
+            🗑️ Borrar todos los datos
+
+        </button>
+
+    </div>
+
+</section>
+
+
+</main>
+
+
+
+<!-- =====================================================
+     MODAL PRODUCTO
+===================================================== -->
+
+<div
+    id="modalProducto"
+    class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>
+                ➕ Nuevo producto
+            </h2>
+
+            <button
+                class="close"
+                onclick="cerrarModal('modalProducto')">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <div class="form-grid">
+
+
+            <div class="form-group">
+
+                <label>
+                    Código
+                </label>
+
+                <input
+                    id="productoCodigo"
+                    type="text"
+                    placeholder="Ej: 001">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Nombre
+                </label>
+
+                <input
+                    id="productoNombre"
+                    type="text"
+                    placeholder="Ej: iPhone 7">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Precio
+                </label>
+
+                <input
+                    id="productoPrecio"
+                    type="number"
+                    min="0"
+                    placeholder="Ej: 5000">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Stock inicial
+                </label>
+
+                <input
+                    id="productoStock"
+                    type="number"
+                    min="0"
+                    placeholder="Ej: 10">
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label>
+                    Ubicación
+                </label>
+
+                <input
+                    id="productoUbicacion"
+                    type="text"
+                    placeholder="Ej: A-001-545">
+
+            </div>
+
+        </div>
+
+
+        <br>
+
+
+        <button
+            class="btn btn-success"
+            onclick="guardarProducto()">
+
+            💾 Guardar producto
+
+        </button>
+
+
+        <button
+            class="btn btn-secondary"
+            onclick="cerrarModal('modalProducto')">
+
+            Cancelar
+
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MODAL STOCK
+===================================================== -->
+
+<div
+    id="modalStock"
+    class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>
+                📈 Movimiento de stock
+            </h2>
+
+            <button
+                class="close"
+                onclick="cerrarModal('modalStock')">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <div class="form-grid">
+
+
+            <div class="form-group full">
+
+                <label>
+                    Producto
+                </label>
+
+                <select id="stockProducto">
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Tipo de movimiento
+                </label>
+
+                <select id="stockTipo">
+
+                    <option value="entrada">
+                        📥 Entrada
+                    </option>
+
+                    <option value="salida">
+                        📤 Salida
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Cantidad
+                </label>
+
+                <input
+                    id="stockCantidad"
+                    type="number"
+                    min="1"
+                    placeholder="Ej: 10">
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label>
+                    Detalle
+                </label>
+
+                <input
+                    id="stockDetalle"
+                    type="text"
+                    placeholder="Ej: Compra a proveedor">
+
+            </div>
+
+        </div>
+
+
+        <br>
+
+
+        <button
+            class="btn btn-success"
+            onclick="guardarMovimientoStock()">
+
+            💾 Guardar movimiento
+
+        </button>
+
+
+        <button
+            class="btn btn-secondary"
+            onclick="cerrarModal('modalStock')">
+
+            Cancelar
+
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MODAL VENTA
+===================================================== -->
+
+<div
+    id="modalVenta"
+    class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>
+                🛒 Nueva venta
+            </h2>
+
+            <button
+                class="close"
+                onclick="cerrarModal('modalVenta')">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <div class="form-grid">
+
+
+            <div class="form-group full">
+
+                <label>
+                    Producto
+                </label>
+
+                <select id="ventaProducto">
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Cantidad
+                </label>
+
+                <input
+                    id="ventaCantidad"
+                    type="number"
+                    min="1"
+                    placeholder="Ej: 2">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Precio unitario
+                </label>
+
+                <input
+                    id="ventaPrecio"
+                    type="number"
+                    min="0"
+                    placeholder="Automático">
+
+            </div>
+
+        </div>
+
+
+        <br>
+
+
+        <button
+            class="btn btn-success"
+            onclick="guardarVenta()">
+
+            💾 Registrar venta
+
+        </button>
+
+
+        <button
+            class="btn btn-secondary"
+            onclick="cerrarModal('modalVenta')">
+
+            Cancelar
+
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+/* =====================================================
+   DATOS
+===================================================== */
+
+let productos =
+    JSON.parse(localStorage.getItem("productos")) || [];
+
+let ventas =
+    JSON.parse(localStorage.getItem("ventas")) || [];
+
+let movimientos =
+    JSON.parse(localStorage.getItem("movimientos")) || [];
+
+let configuracion =
+    JSON.parse(localStorage.getItem("configuracion")) || {
+
+        nombre:"LOGISTICA",
+
+        moneda:"$",
+
+        oscuro:false
+
+    };
+
+
+/* =====================================================
+   GUARDAR DATOS
+===================================================== */
+
+function guardarDatos(){
+
+    localStorage.setItem(
+        "productos",
+        JSON.stringify(productos)
+    );
+
+    localStorage.setItem(
+        "ventas",
+        JSON.stringify(ventas)
+    );
+
+    localStorage.setItem(
+        "movimientos",
+        JSON.stringify(movimientos)
+    );
+
+}
+
+
+/* =====================================================
+   NAVEGACIÓN
+===================================================== */
+
+function mostrarPagina(nombre, boton){
+
+    document.querySelectorAll(".page")
+    .forEach(function(page){
+
+        page.classList.remove("activa");
+
+    });
+
+
+    document.getElementById(nombre)
+    .classList.add("activa");
+
+
+    document.querySelectorAll(".menu button")
+    .forEach(function(btn){
+
+        btn.classList.remove("activo");
+
+    });
+
+
+    if(boton){
+
+        boton.classList.add("activo");
+
+    }
+
+
+    const titulos = {
+
+        dashboard:"Dashboard",
+
+        productos:"Productos",
+
+        stock:"Control de Stock",
+
+        ventas:"Ventas",
+
+        movimientos:"Movimientos",
+
+        ubicaciones:"Ubicaciones",
+
+        configuracion:"Configuración"
+
+    };
+
+
+    document.getElementById(
+        "tituloPagina"
+    ).textContent = titulos[nombre];
+
+
+    if(nombre === "dashboard"){
+        renderDashboard();
+    }
+
+    if(nombre === "productos"){
+        renderProductos();
+    }
+
+    if(nombre === "stock"){
+        renderStock();
+    }
+
+    if(nombre === "ventas"){
+        renderVentas();
+    }
+
+    if(nombre === "movimientos"){
+        renderMovimientos();
+    }
+
+    if(nombre === "ubicaciones"){
+        renderUbicaciones();
+    }
+
+}
+
+
+/* =====================================================
+   MODALES
+===================================================== */
+
+function abrirModalProducto(){
+
+    document.getElementById(
+        "modalProducto"
+    ).classList.add("visible");
+
+}
+
+
+function abrirModalStock(){
+
+    actualizarSelectProductos("stockProducto");
+
+    document.getElementById(
+        "modalStock"
+    ).classList.add("visible");
+
+}
+
+
+function abrirModalVenta(){
+
+    actualizarSelectProductos("ventaProducto");
+
+    document.getElementById(
+        "modalVenta"
+    ).classList.add("visible");
+
+}
+
+
+function cerrarModal(id){
+
+    document.getElementById(id)
+    .classList.remove("visible");
+
+}
+
+
+/* =====================================================
+   AGREGAR PRODUCTO
+===================================================== */
+
+function guardarProducto(){
+
+    const codigo =
+        document.getElementById(
+            "productoCodigo"
+        ).value.trim();
+
+    const nombre =
+        document.getElementById(
+            "productoNombre"
+        ).value.trim();
+
+    const precio =
+        Number(
+            document.getElementById(
+                "productoPrecio"
+            ).value
+        ) || 0;
+
+    const stock =
+        Number(
+            document.getElementById(
+                "productoStock"
+            ).value
+        ) || 0;
+
+    const ubicacion =
+        document.getElementById(
+            "productoUbicacion"
+        ).value.trim();
+
+
+    if(!codigo || !nombre){
+
+        alert(
+            "⚠️ Completá el código y el nombre."
+        );
+
+        return;
+
+    }
+
+
+    const existe =
+        productos.some(function(p){
+
+            return p.codigo.toLowerCase()
+                === codigo.toLowerCase();
+
+        });
+
+
+    if(existe){
+
+        alert(
+            "⚠️ Ya existe un producto con ese código."
+        );
+
+        return;
+
+    }
+
+
+    const producto = {
+
+        id:Date.now(),
+
+        codigo:codigo,
+
+        nombre:nombre,
+
+        precio:precio,
+
+        stock:stock,
+
+        ubicacion:
+            ubicacion || "Sin ubicación"
+
+    };
+
+
+    productos.push(producto);
+
+
+    if(stock > 0){
+
+        movimientos.unshift({
+
+            id:Date.now()+1,
+
+            fecha:fechaActual(),
+
+            tipo:"Entrada",
+
+            producto:nombre,
+
+            cantidad:stock,
+
+            detalle:"Stock inicial"
+
+        });
+
+    }
+
+
+    guardarDatos();
+
+
+    limpiarFormularioProducto();
+
+
+    cerrarModal("modalProducto");
+
+
+    renderProductos();
+
+    renderDashboard();
+
+
+    alert(
+        "✅ Producto agregado correctamente."
+    );
+
+}
+
+
+/* =====================================================
+   LIMPIAR FORMULARIO
+===================================================== */
+
+function limpiarFormularioProducto(){
+
+    document.getElementById(
+        "productoCodigo"
+    ).value = "";
+
+    document.getElementById(
+        "productoNombre"
+    ).value = "";
+
+    document.getElementById(
+        "productoPrecio"
+    ).value = "";
+
+    document.getElementById(
+        "productoStock"
+    ).value = "";
+
+    document.getElementById(
+        "productoUbicacion"
+    ).value = "";
+
+}
+
+
+/* =====================================================
+   RENDER PRODUCTOS
+===================================================== */
+
+function renderProductos(){
+
+    const tabla =
+        document.getElementById(
+            "tablaProductos"
+        );
+
+
+    const busqueda =
+        document.getElementById(
+            "buscarProducto"
+        )?.value.toLowerCase() || "";
+
+
+    const filtrados =
+        productos.filter(function(p){
+
+            return (
+
+                p.nombre.toLowerCase()
+                .includes(busqueda)
+
+                ||
+
+                p.codigo.toLowerCase()
+                .includes(busqueda)
+
+                ||
+
+                p.ubicacion.toLowerCase()
+                .includes(busqueda)
+
+            );
+
+        });
+
+
+    tabla.innerHTML = "";
+
+
+    if(filtrados.length === 0){
+
+        tabla.innerHTML = `
+
+            <tr>
+
+                <td colspan="7" class="empty">
+
+                    📦 No hay productos registrados.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    filtrados.forEach(function(p){
+
+        let estado = "";
+
+        if(p.stock <= 0){
+
+            estado = `
+                <span class="badge badge-red">
+                    SIN STOCK
+                </span>
+            `;
+
+        }
+        else if(p.stock <= 5){
+
+            estado = `
+                <span class="badge badge-orange">
+                    STOCK BAJO
+                </span>
+            `;
+
+        }
+        else{
+
+            estado = `
+                <span class="badge badge-green">
+                    DISPONIBLE
+                </span>
+            `;
+
+        }
+
+
+        tabla.innerHTML += `
+
+            <tr>
+
+                <td>
+                    <strong>${escapeHTML(p.codigo)}</strong>
+                </td>
+
+                <td>
+                    ${escapeHTML(p.nombre)}
+                </td>
+
+                <td>
+                    ${formatearDinero(p.precio)}
+                </td>
+
+                <td>
+                    <strong>${p.stock}</strong>
+                </td>
+
+                <td>
+                    ${escapeHTML(p.ubicacion)}
+                </td>
+
+                <td>
+                    ${estado}
+                </td>
+
+                <td>
+
+                    <button
+                        class="btn btn-success btn-small"
+                        onclick="sumarStockRapido(${p.id})">
+
+                        + Stock
+
+                    </button>
+
+                    <button
+                        class="btn btn-danger btn-small"
+                        onclick="eliminarProducto(${p.id})">
+
+                        🗑️
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+}
+
+
+/* =====================================================
+   STOCK
+===================================================== */
+
+function renderStock(){
+
+    const tabla =
+        document.getElementById(
+            "tablaStock"
+        );
+
+    tabla.innerHTML = "";
+
+
+    if(productos.length === 0){
+
+        tabla.innerHTML = `
+
+            <tr>
+
+                <td colspan="5" class="empty">
+
+                    📦 No hay productos.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    productos.forEach(function(p){
+
+        let estado;
+
+
+        if(p.stock <= 0){
+
+            estado = `
+                <span class="badge badge-red">
+                    SIN STOCK
+                </span>
+            `;
+
+        }
+        else if(p.stock <= 5){
+
+            estado = `
+                <span class="badge badge-orange">
+                    BAJO
+                </span>
+            `;
+
+        }
+        else{
+
+            estado = `
+                <span class="badge badge-green">
+                    NORMAL
+                </span>
+            `;
+
+        }
+
+
+        tabla.innerHTML += `
+
+            <tr>
+
+                <td>
+                    ${escapeHTML(p.nombre)}
+                </td>
+
+                <td>
+                    ${escapeHTML(p.codigo)}
+                </td>
+
+                <td>
+                    <strong>${p.stock}</strong>
+                </td>
+
+                <td>
+                    ${estado}
+                </td>
+
+                <td>
+
+                    <button
+                        class="btn btn-success btn-small"
+                        onclick="sumarStockRapido(${p.id})">
+
+                        + Agregar
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+}
+
+
+/* =====================================================
+   SUMAR STOCK RÁPIDO
+===================================================== */
+
+function sumarStockRapido(id){
+
+    actualizarSelectProductos(
+        "stockProducto",
+        id
+    );
+
+    document.getElementById(
+        "stockTipo"
+    ).value = "entrada";
+
+
+    document.getElementById(
+        "modalStock"
+    ).classList.add("visible");
+
+}
+
+
+/* =====================================================
+   MOVIMIENTO STOCK
+===================================================== */
+
+function guardarMovimientoStock(){
+
+    const id =
+        Number(
+            document.getElementById(
+                "stockProducto"
+            ).value
+        );
+
+    const tipo =
+        document.getElementById(
+            "stockTipo"
+        ).value;
+
+    const cantidad =
+        Number(
+            document.getElementById(
+                "stockCantidad"
+            ).value
+        );
+
+    const detalle =
+        document.getElementById(
+            "stockDetalle"
+        ).value.trim();
+
+
+    if(!id || cantidad <= 0){
+
+        alert(
+            "⚠️ Seleccioná un producto y una cantidad válida."
+        );
+
+        return;
+
+    }
+
+
+    const producto =
+        productos.find(function(p){
+
+            return p.id === id;
+
+        });
+
+
+    if(!producto){
+
+        return;
+
+    }
+
+
+    if(
+        tipo === "salida" &&
+        cantidad > producto.stock
+    ){
+
+        alert(
+            "❌ No hay suficiente stock disponible."
+        );
+
+        return;
+
+    }
+
+
+    if(tipo === "entrada"){
+
+        producto.stock += cantidad;
+
+    }
+    else{
+
+        producto.stock -= cantidad;
+
+    }
+
+
+    movimientos.unshift({
+
+        id:Date.now(),
+
+        fecha:fechaActual(),
+
+        tipo:
+            tipo === "entrada"
+            ? "Entrada"
+            : "Salida",
+
+        producto:producto.nombre,
+
+        cantidad:cantidad,
+
+        detalle:
+            detalle ||
+            (
+                tipo === "entrada"
+                ? "Entrada de stock"
+                : "Salida de stock"
+            )
+
+    });
+
+
+    guardarDatos();
+
+
+    document.getElementById(
+        "stockCantidad"
+    ).value = "";
+
+    document.getElementById(
+        "stockDetalle"
+    ).value = "";
+
+
+    cerrarModal("modalStock");
+
+
+    renderStock();
+
+    renderProductos();
+
+    renderDashboard();
+
+    renderMovimientos();
+
+
+    alert(
+        "✅ Movimiento registrado."
+    );
+
+}
+
+
+/* =====================================================
+   VENTAS
+===================================================== */
+
+function guardarVenta(){
+
+    const id =
+        Number(
+            document.getElementById(
+                "ventaProducto"
+            ).value
+        );
+
+    const cantidad =
+        Number(
+            document.getElementById(
+                "ventaCantidad"
+            ).value
+        );
+
+
+    const precioInput =
+        Number(
+            document.getElementById(
+                "ventaPrecio"
+            ).value
+        );
+
+
+    if(!id || cantidad <= 0){
+
+        alert(
+            "⚠️ Seleccioná un producto y cantidad."
+        );
+
+        return;
+
+    }
+
+
+    const producto =
+        productos.find(function(p){
+
+            return p.id === id;
+
+        });
+
+
+    if(!producto){
+
+        return;
+
+    }
+
+
+    if(cantidad > producto.stock){
+
+        alert(
+            "❌ No hay suficiente stock para realizar esta venta."
+        );
+
+        return;
+
+    }
+
+
+    const precio =
+        precioInput > 0
+        ? precioInput
+        : producto.precio;
+
+
+    const total =
+        precio * cantidad;
+
+
+    producto.stock -= cantidad;
+
+
+    ventas.unshift({
+
+        id:Date.now(),
+
+        fecha:fechaActual(),
+
+        producto:producto.nombre,
+
+        cantidad:cantidad,
+
+        precio:precio,
+
+        total:total
+
+    });
+
+
+    movimientos.unshift({
+
+        id:Date.now()+1,
+
+        fecha:fechaActual(),
+
+        tipo:"Venta",
+
+        producto:producto.nombre,
+
+        cantidad:cantidad,
+
+        detalle:"Venta registrada"
+
+    });
+
+
+    guardarDatos();
+
+
+    document.getElementById(
+        "ventaCantidad"
+    ).value = "";
+
+    document.getElementById(
+        "ventaPrecio"
+    ).value = "";
+
+
+    cerrarModal("modalVenta");
+
+
+    renderVentas();
+
+    renderProductos();
+
+    renderStock();
+
+    renderDashboard();
+
+    renderMovimientos();
+
+
+    alert(
+        "✅ Venta registrada correctamente."
+    );
+
+}
+
+
+/* =====================================================
+   RENDER VENTAS
+===================================================== */
+
+function renderVentas(){
+
+    const tabla =
+        document.getElementById(
+            "tablaVentas"
+        );
+
+
+    tabla.innerHTML = "";
+
+
+    if(ventas.length === 0){
+
+        tabla.innerHTML = `
+
+            <tr>
+
+                <td colspan="5" class="empty">
+
+                    🛒 Todavía no hay ventas.
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+
+    let totalDinero = 0;
+
+
+    ventas.forEach(function(v){
+
+        totalDinero += Number(v.total);
+
+
+        tabla.innerHTML += `
+
+            <tr>
+
+                <td>
+                    ${v.fecha}
+                </td>
+
+                <td>
+                    ${escapeHTML(v.producto)}
+                </td>
+
+                <td>
+                    ${v.cantidad}
+                </td>
+
+                <td>
+                    ${formatearDinero(v.precio)}
+                </td>
+
+                <td>
+                    <strong>
+                        ${formatearDinero(v.total)}
+                    </strong>
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+
+    document.getElementById(
+        "ventasCantidad"
+    ).textContent = ventas.length;
+
+
+    document.getElementById(
+        "ventasDinero"
+    ).textContent =
+        formatearDinero(totalDinero);
+
+}
+
+
+/* =====================================================
+   MOVIMIENTOS
+===================================================== */
+
+function renderMovimientos(){
+
+    const tabla =
+        document.getElementById(
+            "tablaMovimientos"
+        );
+
+
+    tabla.innerHTML = "";
+
+
+    if(movimientos.length === 0){
+
+        tabla.innerHTML = `
+
+            <tr>
+
+                <td colspan="5" class="empty">
+
+                    🔄 No hay movimientos.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    movimientos.forEach(function(m){
+
+        let clase = "";
+
+        if(m.tipo === "Entrada"){
+            clase = "movimiento-entrada";
+        }
+
+        if(m.tipo === "Salida" || m.tipo === "Venta"){
+            clase = "movimiento-salida";
+        }
+
+
+        tabla.innerHTML += `
+
+            <tr>
+
+                <td>
+                    ${m.fecha}
+                </td>
+
+                <td class="${clase}">
+                    ${m.tipo}
+                </td>
+
+                <td>
+                    ${escapeHTML(m.producto)}
+                </td>
+
+                <td>
+                    ${m.cantidad}
+                </td>
+
+                <td>
+                    ${escapeHTML(m.detalle)}
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+}
+
+
+/* =====================================================
+   UBICACIONES
+===================================================== */
+
+function renderUbicaciones(){
+
+    const contenedor =
+        document.getElementById(
+            "listaUbicaciones"
+        );
+
+
+    const ubicaciones = {};
+
+
+    productos.forEach(function(p){
+
+        const ubicacion =
+            p.ubicacion || "Sin ubicación";
+
+
+        if(!ubicaciones[ubicacion]){
+
+            ubicaciones[ubicacion] = [];
+
+        }
+
+
+        ubicaciones[ubicacion].push(p);
+
+    });
+
+
+    contenedor.innerHTML = "";
+
+
+    const nombres =
+        Object.keys(ubicaciones);
+
+
+    if(nombres.length === 0){
+
+        contenedor.innerHTML = `
+
+            <div class="empty">
+
+                📍 No hay ubicaciones registradas.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    nombres.forEach(function(ubicacion){
+
+        let filas = "";
+
+
+        ubicaciones[ubicacion]
+        .forEach(function(p){
+
+            filas += `
+
+                <tr>
+
+                    <td>
+                        ${escapeHTML(p.codigo)}
+                    </td>
+
+                    <td>
+                        ${escapeHTML(p.nombre)}
+                    </td>
+
+                    <td>
+                        ${p.stock}
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+
+        contenedor.innerHTML += `
+
+            <div class="panel">
+
+                <h3>
+                    📍 ${escapeHTML(ubicacion)}
+                </h3>
+
+                <br>
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Código
+                                </th>
+
+                                <th>
+                                    Producto
+                                </th>
+
+                                <th>
+                                    Stock
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            ${filas}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+function renderDashboard(){
+
+    const totalProductos =
+        productos.length;
+
+
+    const totalStock =
+        productos.reduce(
+            function(total,p){
+
+                return total + Number(p.stock);
+
+            },0
+        );
+
+
+    const stockBajo =
+        productos.filter(
+            function(p){
+
+                return p.stock <= 5;
+
+            }
+        ).length;
+
+
+    document.getElementById(
+        "dashProductos"
+    ).textContent =
+        totalProductos;
+
+
+    document.getElementById(
+        "dashStock"
+    ).textContent =
+        totalStock;
+
+
+    document.getElementById(
+        "dashVentas"
+    ).textContent =
+        ventas.length;
+
+
+    document.getElementById(
+        "dashBajo"
+    ).textContent =
+        stockBajo;
+
+
+    const contenedor =
+        document.getElementById(
+            "dashMovimientos"
+        );
+
+
+    if(movimientos.length === 0){
+
+        contenedor.innerHTML = `
+
+            <div class="empty">
+
+                Todavía no hay movimientos.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    let html = `
+
+        <div class="table-container">
+
+        <table>
+
+        <thead>
+
+            <tr>
+
+                <th>Fecha</th>
+
+                <th>Tipo</th>
+
+                <th>Producto</th>
+
+                <th>Cantidad</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+    `;
+
+
+    movimientos
+    .slice(0,5)
+    .forEach(function(m){
+
+        html += `
+
+            <tr>
+
+                <td>
+                    ${m.fecha}
+                </td>
+
+                <td>
+                    ${m.tipo}
+                </td>
+
+                <td>
+                    ${escapeHTML(m.producto)}
+                </td>
+
+                <td>
+                    ${m.cantidad}
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+
+    html += `
+
+        </tbody>
+
+        </table>
+
+        </div>
+
+    `;
+
+
+    contenedor.innerHTML = html;
+
+}
+
+
+/* =====================================================
+   SELECT DE PRODUCTOS
+===================================================== */
+
+function actualizarSelectProductos(
+    id,
+    productoSeleccionado = null
+){
+
+    const select =
+        document.getElementById(id);
+
+
+    select.innerHTML = "";
+
+
+    if(productos.length === 0){
+
+        select.innerHTML = `
+
+            <option value="">
+                No hay productos
+            </option>
+
+        `;
+
+        return;
+
+    }
+
+
+    productos.forEach(function(p){
+
+        const option =
+            document.createElement("option");
+
+
+        option.value = p.id;
+
+
+        option.textContent =
+            `${p.codigo} - ${p.nombre} (Stock: ${p.stock})`;
+
+
+        if(
+            productoSeleccionado &&
+            p.id === productoSeleccionado
+        ){
+
+            option.selected = true;
+
+        }
+
+
+        select.appendChild(option);
+
+    });
+
+}
+
+
+/* =====================================================
+   ELIMINAR PRODUCTO
+===================================================== */
+
+function eliminarProducto(id){
+
+    const producto =
+        productos.find(function(p){
+
+            return p.id === id;
+
+        });
+
+
+    if(!producto){
+
+        return;
+
+    }
+
+
+    const confirmar =
+        confirm(
+            `¿Eliminar "${producto.nombre}"?`
+        );
+
+
+    if(!confirmar){
+
+        return;
+
+    }
+
+
+    productos =
+        productos.filter(function(p){
+
+            return p.id !== id;
+
+        });
+
+
+    guardarDatos();
+
+
+    renderProductos();
+
+    renderStock();
+
+    renderDashboard();
+
+    renderUbicaciones();
+
+}
+
+
+/* =====================================================
+   CONFIGURACIÓN
+===================================================== */
+
+function cargarConfiguracion(){
+
+    document.getElementById(
+        "configNombre"
+    ).value =
+        configuracion.nombre;
+
+
+    document.getElementById(
+        "configMoneda"
+    ).value =
+        configuracion.moneda;
+
+
+    if(configuracion.oscuro){
+
+        document.body.classList.add("dark");
+
+    }
+
+    else{
+
+        document.body.classList.remove("dark");
+
+    }
+
+
+    document.getElementById(
+        "logoNombre"
+    ).textContent =
+        configuracion.nombre;
+
+}
+
+
+function guardarConfiguracion(){
+
+    const nombre =
+        document.getElementById(
+            "configNombre"
+        ).value.trim();
+
+
+    const moneda =
+        document.getElementById(
+            "configMoneda"
+        ).value;
+
+
+    configuracion.nombre =
+        nombre || "LOGISTICA";
+
+
+    configuracion.moneda =
+        moneda;
+
+
+    localStorage.setItem(
+        "configuracion",
+        JSON.stringify(configuracion)
+    );
+
+
+    document.getElementById(
+        "logoNombre"
+    ).textContent =
+        configuracion.nombre;
+
+
+    alert(
+        "✅ Configuración guardada."
+    );
+
+}
+
+
+function cambiarTema(){
+
+    document.body.classList.toggle("dark");
+
+
+    configuracion.oscuro =
+        document.body.classList.contains("dark");
+
+
+    localStorage.setItem(
+        "configuracion",
+        JSON.stringify(configuracion)
+    );
+
+}
+
+
+/* =====================================================
+   BORRAR TODO
+===================================================== */
+
+function borrarTodo(){
+
+    const confirmar =
+        confirm(
+            "⚠️ ATENCIÓN\n\nEsto eliminará TODOS los productos, ventas y movimientos.\n\n¿Continuar?"
+        );
+
+
+    if(!confirmar){
+
+        return;
+
+    }
+
+
+    localStorage.removeItem("productos");
+
+    localStorage.removeItem("ventas");
+
+    localStorage.removeItem("movimientos");
+
+
+    productos = [];
+
+    ventas = [];
+
+    movimientos = [];
+
+
+    renderDashboard();
+
+    renderProductos();
+
+    renderStock();
+
+    renderVentas();
+
+    renderMovimientos();
+
+    renderUbicaciones();
+
+
+    alert(
+        "✅ Todos los datos fueron eliminados."
+    );
+
+}
+
+
+/* =====================================================
+   FECHA
+===================================================== */
+
+function fechaActual(){
+
+    const ahora = new Date();
+
+
+    return ahora.toLocaleString(
+        "es-UY"
+    );
+
+}
+
+
+/* =====================================================
+   DINERO
+===================================================== */
+
+function formatearDinero(valor){
+
+    return (
+        configuracion.moneda +
+        Number(valor || 0).toLocaleString(
+            "es-UY"
+        )
+    );
+
+}
+
+
+/* =====================================================
+   SEGURIDAD HTML
+===================================================== */
+
+function escapeHTML(texto){
+
+    return String(texto)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+
+/* =====================================================
+   INICIO
+===================================================== */
+
+cargarConfiguracion();
+
+renderDashboard();
+
+renderProductos();
+
+renderStock();
+
+renderVentas();
+
+renderMovimientos();
+
+renderUbicaciones();
+
+
+</script>
+
+</body>
+
+</html>

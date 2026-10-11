@@ -3162,54 +3162,73 @@ function cambiarTema(){
    BORRAR TODO
 ===================================================== */
 
-function borrarTodo(){
+async function borrarTodo() {
 
-    const confirmar =
-        confirm(
-            "⚠️ ATENCIÓN\n\nEsto eliminará TODOS los productos, ventas y movimientos.\n\n¿Continuar?"
-        );
-
-
-    if(!confirmar){
-
-        return;
-
-    }
-
-
-    localStorage.removeItem("productos");
-
-    localStorage.removeItem("ventas");
-
-    localStorage.removeItem("movimientos");
-
-
-    productos = [];
-
-    ventas = [];
-
-    movimientos = [];
-
-
-    renderDashboard();
-
-    renderProductos();
-
-    renderStock();
-
-    renderVentas();
-
-    renderMovimientos();
-
-    renderUbicaciones();
-
-
-    alert(
-        "✅ Todos los datos fueron eliminados."
+    const confirmar = confirm(
+        "⚠️ ATENCIÓN\n\nEsto eliminará TODOS los productos, ventas y movimientos de la base de datos.\n\n¿Continuar?"
     );
 
-}
+    if (!confirmar) {
+        return;
+    }
 
+    try {
+        // Eliminar movimientos de Supabase
+        const { error: errorMovimientos } = await window.supabase
+            .from("movimientos")
+            .delete()
+            .gt("id", 0);
+
+        if (errorMovimientos) {
+            throw errorMovimientos;
+        }
+
+        // Eliminar ventas de Supabase
+        const { error: errorVentas } = await window.supabase
+            .from("ventas")
+            .delete()
+            .gt("id", 0);
+
+        if (errorVentas) {
+            throw errorVentas;
+        }
+
+        // Eliminar productos de Supabase
+        const { error: errorProductos } = await window.supabase
+            .from("productos")
+            .delete()
+            .gt("id", 0);
+
+        if (errorProductos) {
+            throw errorProductos;
+        }
+
+        // Limpiar los datos locales
+        localStorage.removeItem("productos");
+        localStorage.removeItem("ventas");
+        localStorage.removeItem("movimientos");
+
+        productos = [];
+        ventas = [];
+        movimientos = [];
+
+        renderDashboard();
+        renderProductos();
+        renderStock();
+        renderVentas();
+        renderMovimientos();
+        renderUbicaciones();
+
+        alert("✅ Los datos fueron eliminados de Supabase.");
+
+    } catch (error) {
+        console.error("Error al borrar los datos:", error);
+
+        alert(
+            "❌ No se pudieron eliminar todos los datos.\n\nRevisá la consola de Chrome para conocer el error."
+        );
+    }
+}
 
 /* =====================================================
    FECHA

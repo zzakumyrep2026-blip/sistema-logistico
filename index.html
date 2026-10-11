@@ -2,6 +2,8 @@
 <html lang="es">
 
 <head>
+    <link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#173b7a">
 
 <meta charset="UTF-8">
 
@@ -3360,6 +3362,15 @@ function iniciarSesion() {
 }
 </script>
 <script type="module" src="./app.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+            .then(() => console.log("Aplicación preparada para instalar"))
+            .catch(error => console.error("Error al registrar la aplicación:", error));
+    });
+}
+</script>
 </body>
 
 </html>

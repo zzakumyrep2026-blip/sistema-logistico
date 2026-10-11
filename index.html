@@ -583,6 +583,17 @@ body.dark .card-small{
 
 }
 
+
+/* Fotos y ficha de productos */
+.foto-producto-mini{width:42px;height:42px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px;background:#e2e8f0}
+.fila-producto{cursor:pointer;transition:background .15s}
+.fila-producto:hover{background:rgba(56,189,248,.10)}
+.preview-foto{display:block;max-width:180px;max-height:180px;object-fit:contain;border-radius:10px;margin-top:10px}
+.detalle-foto{width:100%;max-height:300px;object-fit:contain;border-radius:12px;background:#f1f5f9;margin-bottom:16px}
+.detalle-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.detalle-item{padding:12px;border-radius:10px;background:#f1f5f9;overflow-wrap:anywhere}
+.detalle-item small{display:block;color:#64748b;margin-bottom:5px}
+@media(max-width:520px){.detalle-grid{grid-template-columns:1fr}.detalle-foto{max-height:220px}}
 </style>
 
 </head>
@@ -1403,6 +1414,13 @@ body.dark .card-small{
 
             </div>
 
+            <div class="form-group full">
+                <label>📷 Foto del producto (opcional)</label>
+                <input id="productoImagen" type="file" accept="image/*" onchange="previsualizarFotoProducto(event)">
+                <img id="productoImagenPreview" class="preview-foto" alt="Vista previa" hidden>
+                <small>La foto se guardará para verla también desde el celular.</small>
+            </div>
+
         </div>
 
 
@@ -1430,7 +1448,18 @@ body.dark .card-small{
 
 </div>
 
-
+<!-- Ficha detallada del producto -->
+<div id="modalDetalleProducto" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📦 Detalle del producto</h2>
+            <button class="close" onclick="cerrarModal('modalDetalleProducto')">×</button>
+        </div>
+        <div id="contenidoDetalleProducto"></div>
+        <br>
+        <button class="btn btn-secondary" onclick="cerrarModal('modalDetalleProducto')">Cerrar</button>
+    </div>
+</div>
 
 <!-- =====================================================
      MODAL STOCK
@@ -1854,30 +1883,53 @@ function cerrarModal(id){
 ===================================================== */
 
 async function guardarProducto(){
-
     const codigo = document.getElementById("productoCodigo").value.trim();
     const nombre = document.getElementById("productoNombre").value.trim();
     const precio = Number(document.getElementById("productoPrecio").value) || 0;
     const stock = Number(document.getElementById("productoStock").value) || 0;
     const ubicacion = document.getElementById("productoUbicacion").value.trim();
+    const archivoImagen = document.getElementById("productoImagen")?.files?.[0] || null;
 
     if(!codigo || !nombre){
         alert("⚠️ Completá el código y el nombre.");
         return;
     }
-
     if(stock < 0 || precio < 0){
         alert("⚠️ El precio y el stock no pueden ser negativos.");
         return;
     }
-
     const existe = productos.some(function(p){
         return String(p.codigo).toLowerCase() === codigo.toLowerCase();
     });
-
     if(existe){
         alert("⚠️ Ya existe un producto con ese código.");
         return;
+    }
+
+    let imagenUrl = null;
+    if(archivoImagen){
+        if(!archivoImagen.type.startsWith("image/")){
+            alert("⚠️ Elegí un archivo de imagen válido.");
+            return;
+        }
+        if(archivoImagen.size > 5 * 1024 * 1024){
+            alert("⚠️ La imagen debe pesar menos de 5 MB.");
+            return;
+        }
+        const extension = (archivoImagen.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+        const rutaImagen = `${Date.now()}-${Math.random().toString(36).slice(2)}.${extension || "jpg"}`;
+        const { error: errorSubida } = await window.supabase
+            .storage.from("imagenes-productos")
+            .upload(rutaImagen, archivoImagen, { upsert: false, contentType: archivoImagen.type });
+        if(errorSubida){
+            console.error("Error subiendo imagen:", errorSubida);
+            alert("❌ No se pudo subir la foto. Revisá la política INSERT del bucket imagenes-productos.");
+            return;
+        }
+        const { data: urlPublica } = window.supabase
+            .storage.from("imagenes-productos")
+            .getPublicUrl(rutaImagen);
+        imagenUrl = urlPublica.publicUrl;
     }
 
     const productoNuevo = {
@@ -1885,7 +1937,8 @@ async function guardarProducto(){
         nombre: nombre,
         precio: precio,
         stock: stock,
-        ubicacion: ubicacion || "Sin ubicación"
+        ubicacion: ubicacion || "Sin ubicación",
+        imagen_url: imagenUrl
     };
 
     const { data, error } = await window.supabase
@@ -1896,13 +1949,12 @@ async function guardarProducto(){
 
     if(error){
         console.error("Error guardando producto:", error);
-        alert("❌ No se pudo guardar el producto en Supabase.");
+        alert("❌ No se pudo guardar el producto en Supabase. La foto puede haber quedado subida sin asociarse al producto.");
         return;
     }
 
     productos.push(data);
 
-    // El stock inicial también queda registrado como una entrada.
     if(stock > 0){
         const movimientoInicial = {
             fecha: fechaActual(),
@@ -1911,14 +1963,11 @@ async function guardarProducto(){
             cantidad: stock,
             detalle: "Stock inicial"
         };
-
-        const { data: movimientoGuardado, error: errorMovimiento } =
-            await window.supabase
-                .from("movimientos")
-                .insert([movimientoInicial])
-                .select()
-                .single();
-
+        const { data: movimientoGuardado, error: errorMovimiento } = await window.supabase
+            .from("movimientos")
+            .insert([movimientoInicial])
+            .select()
+            .single();
         if(errorMovimiento){
             console.error("Error guardando el movimiento inicial:", errorMovimiento);
             alert("⚠️ El producto se guardó, pero no se pudo guardar su movimiento inicial. Revisá la tabla movimientos en Supabase.");
@@ -1934,6 +1983,25 @@ async function guardarProducto(){
     renderDashboard();
     renderMovimientos();
     alert("✅ Producto agregado correctamente.");
+}
+
+function previsualizarFotoProducto(event){
+    const archivo = event.target.files && event.target.files[0];
+    const preview = document.getElementById("productoImagenPreview");
+    if(!preview) return;
+    if(!archivo){
+        preview.hidden = true;
+        preview.removeAttribute("src");
+        return;
+    }
+    if(!archivo.type.startsWith("image/")){
+        alert("Elegí un archivo de imagen.");
+        event.target.value = "";
+        preview.hidden = true;
+        return;
+    }
+    preview.src = URL.createObjectURL(archivo);
+    preview.hidden = false;
 }
 
 /* =====================================================
@@ -1962,8 +2030,34 @@ function limpiarFormularioProducto(){
         "productoUbicacion"
     ).value = "";
 
+    const campoImagen = document.getElementById("productoImagen");
+    if(campoImagen) campoImagen.value = "";
+    const previewImagen = document.getElementById("productoImagenPreview");
+    if(previewImagen){ previewImagen.hidden = true; previewImagen.removeAttribute("src"); }
+
 }
 
+
+/* =====================================================
+   FICHA DEL PRODUCTO
+===================================================== */
+function abrirDetalleProducto(id){
+    const p = productos.find(function(item){ return String(item.id) === String(id); });
+    if(!p) return;
+    const contenedor = document.getElementById("contenidoDetalleProducto");
+    const foto = p.imagen_url
+        ? `<img class="detalle-foto" src="${escapeHTML(p.imagen_url)}" alt="${escapeHTML(p.nombre)}" onerror="this.style.display='none'">`
+        : `<div class="empty" style="margin-bottom:16px">📷 Este producto todavía no tiene foto.</div>`;
+    contenedor.innerHTML = `${foto}
+        <div class="detalle-grid">
+            <div class="detalle-item"><small>Código</small><strong>${escapeHTML(p.codigo || "—")}</strong></div>
+            <div class="detalle-item"><small>Producto</small><strong>${escapeHTML(p.nombre || "—")}</strong></div>
+            <div class="detalle-item"><small>Precio</small><strong>${escapeHTML(formatearDinero(p.precio))}</strong></div>
+            <div class="detalle-item"><small>Stock disponible</small><strong>${Number(p.stock || 0)}</strong></div>
+            <div class="detalle-item" style="grid-column:1/-1"><small>Ubicación</small><strong>${escapeHTML(p.ubicacion || "Sin ubicación")}</strong></div>
+        </div>`;
+    document.getElementById("modalDetalleProducto").classList.add("visible");
+}
 
 /* =====================================================
    RENDER PRODUCTOS
@@ -2065,13 +2159,14 @@ function renderProductos(){
 
         tabla.innerHTML += `
 
-            <tr>
+            <tr class="fila-producto" onclick="abrirDetalleProducto(${Number(p.id)})" title="Tocá para ver el detalle">
 
                 <td>
                     <strong>${escapeHTML(p.codigo)}</strong>
                 </td>
 
                 <td>
+                    ${p.imagen_url ? `<img class="foto-producto-mini" src="${escapeHTML(p.imagen_url)}" alt="" onerror="this.style.display='none'">` : ""}
                     ${escapeHTML(p.nombre)}
                 </td>
 
@@ -2095,7 +2190,7 @@ function renderProductos(){
 
                     <button
                         class="btn btn-success btn-small"
-                        onclick="sumarStockRapido(${p.id})">
+                        onclick="event.stopPropagation(); sumarStockRapido(${p.id})">
 
                         + Stock
 
@@ -2103,7 +2198,7 @@ function renderProductos(){
 
                     <button
                         class="btn btn-danger btn-small"
-                        onclick="eliminarProducto(${p.id})">
+                        onclick="event.stopPropagation(); eliminarProducto(${p.id})">
 
                         🗑️
 

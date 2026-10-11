@@ -2473,15 +2473,27 @@ async function guardarVenta(){
     document.getElementById("ventaPrecio").value = "";
     cerrarModal("modalVenta");
 
-    renderVentas();
-    renderProductos();
-    renderStock();
-    renderDashboard();
-    renderMovimientos();
+renderVentas();
+renderProductos();
+renderStock();
+renderDashboard();
+renderMovimientos();
 
-    alert("✅ Venta registrada correctamente.");
+// Volver a consultar los movimientos guardados en Supabase.
+const { data: movimientosActualizados, error: errorMovimientos } =
+    await window.supabase
+        .from("movimientos")
+        .select("*")
+        .order("id", { ascending: false });
+
+if (errorMovimientos) {
+    console.error("Error actualizando movimientos:", errorMovimientos);
+} else {
+    movimientos = movimientosActualizados || [];
+    renderMovimientos();
 }
 
+alert("✅ Venta registrada correctamente.");
 /* =====================================================
    RENDER VENTAS
 ===================================================== */

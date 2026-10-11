@@ -1658,9 +1658,26 @@ body.dark .card-small{
    DATOS
 ===================================================== */
 
-let productos =
-    JSON.parse(localStorage.getItem("productos")) || [];
+let productos = [];
+window.addEventListener("productosSupabaseCargados", function(event) {
+    productos = event.detail;
 
+    renderProductos();
+    renderStock();
+    renderDashboard();
+});
+
+window.addEventListener("ventasSupabaseCargadas", function(event) {
+    ventas = event.detail || [];
+    renderVentas();
+    renderDashboard();
+});
+
+window.addEventListener("movimientosSupabaseCargados", function(event) {
+    movimientos = event.detail || [];
+    renderMovimientos();
+    renderDashboard();
+});
 let ventas =
     JSON.parse(localStorage.getItem("ventas")) || [];
 
@@ -1834,131 +1851,88 @@ function cerrarModal(id){
    AGREGAR PRODUCTO
 ===================================================== */
 
-function guardarProducto(){
+async function guardarProducto(){
 
-    const codigo =
-        document.getElementById(
-            "productoCodigo"
-        ).value.trim();
-
-    const nombre =
-        document.getElementById(
-            "productoNombre"
-        ).value.trim();
-
-    const precio =
-        Number(
-            document.getElementById(
-                "productoPrecio"
-            ).value
-        ) || 0;
-
-    const stock =
-        Number(
-            document.getElementById(
-                "productoStock"
-            ).value
-        ) || 0;
-
-    const ubicacion =
-        document.getElementById(
-            "productoUbicacion"
-        ).value.trim();
-
+    const codigo = document.getElementById("productoCodigo").value.trim();
+    const nombre = document.getElementById("productoNombre").value.trim();
+    const precio = Number(document.getElementById("productoPrecio").value) || 0;
+    const stock = Number(document.getElementById("productoStock").value) || 0;
+    const ubicacion = document.getElementById("productoUbicacion").value.trim();
 
     if(!codigo || !nombre){
-
-        alert(
-            "⚠️ Completá el código y el nombre."
-        );
-
+        alert("⚠️ Completá el código y el nombre.");
         return;
-
     }
 
+    if(stock < 0 || precio < 0){
+        alert("⚠️ El precio y el stock no pueden ser negativos.");
+        return;
+    }
 
-    const existe =
-        productos.some(function(p){
-
-            return p.codigo.toLowerCase()
-                === codigo.toLowerCase();
-
-        });
-
+    const existe = productos.some(function(p){
+        return String(p.codigo).toLowerCase() === codigo.toLowerCase();
+    });
 
     if(existe){
-
-        alert(
-            "⚠️ Ya existe un producto con ese código."
-        );
-
+        alert("⚠️ Ya existe un producto con ese código.");
         return;
-
     }
 
-
-    const producto = {
-
-        id:Date.now(),
-
-        codigo:codigo,
-
-        nombre:nombre,
-
-        precio:precio,
-
-        stock:stock,
-
-        ubicacion:
-            ubicacion || "Sin ubicación"
-
+    const productoNuevo = {
+        codigo: codigo,
+        nombre: nombre,
+        precio: precio,
+        stock: stock,
+        ubicacion: ubicacion || "Sin ubicación"
     };
 
+    const { data, error } = await window.supabase
+        .from("productos")
+        .insert([productoNuevo])
+        .select()
+        .single();
 
-    productos.push(producto);
-
-
-    if(stock > 0){
-
-        movimientos.unshift({
-
-            id:Date.now()+1,
-
-            fecha:fechaActual(),
-
-            tipo:"Entrada",
-
-            producto:nombre,
-
-            cantidad:stock,
-
-            detalle:"Stock inicial"
-
-        });
-
+    if(error){
+        console.error("Error guardando producto:", error);
+        alert("❌ No se pudo guardar el producto en Supabase.");
+        return;
     }
 
+    productos.push(data);
 
-    guardarDatos();
+    // El stock inicial también queda registrado como una entrada.
+    if(stock > 0){
+        const movimientoInicial = {
+            fecha: fechaActual(),
+            tipo: "Entrada",
+            producto: data.nombre,
+            cantidad: stock,
+            detalle: "Stock inicial"
+        };
 
+        const { data: movimientoGuardado, error: errorMovimiento } =
+            await window.supabase
+                .from("movimientos")
+                .insert([movimientoInicial])
+                .select()
+                .single();
+
+        if(errorMovimiento){
+            console.error("Error guardando el movimiento inicial:", errorMovimiento);
+            alert("⚠️ El producto se guardó, pero no se pudo guardar su movimiento inicial. Revisá la tabla movimientos en Supabase.");
+        } else {
+            movimientos.unshift(movimientoGuardado);
+        }
+    }
 
     limpiarFormularioProducto();
-
-
     cerrarModal("modalProducto");
-
-
     renderProductos();
-
+    renderStock();
     renderDashboard();
-
-
-    alert(
-        "✅ Producto agregado correctamente."
-    );
-
+    renderMovimientos();
+    alert("✅ Producto agregado correctamente.");
 }
-
 
 /* =====================================================
    LIMPIAR FORMULARIO
@@ -2281,287 +2255,230 @@ function sumarStockRapido(id){
    MOVIMIENTO STOCK
 ===================================================== */
 
-function guardarMovimientoStock(){
+async function guardarMovimientoStock(){
 
-    const id =
-        Number(
-            document.getElementById(
-                "stockProducto"
-            ).value
-        );
+    const id = Number(document.getElementById("stockProducto").value);
+    const tipo = document.getElementById("stockTipo").value;
+    const cantidad = Number(document.getElementById("stockCantidad").value);
+    const detalle = document.getElementById("stockDetalle").value.trim();
 
-    const tipo =
-        document.getElementById(
-            "stockTipo"
-        ).value;
-
-    const cantidad =
-        Number(
-            document.getElementById(
-                "stockCantidad"
-            ).value
-        );
-
-    const detalle =
-        document.getElementById(
-            "stockDetalle"
-        ).value.trim();
-
-
-    if(!id || cantidad <= 0){
-
-        alert(
-            "⚠️ Seleccioná un producto y una cantidad válida."
-        );
-
+    if(!id || !Number.isInteger(cantidad) || cantidad <= 0){
+        alert("⚠️ Seleccioná un producto y una cantidad válida.");
         return;
-
     }
 
-
-    const producto =
-        productos.find(function(p){
-
-            return p.id === id;
-
-        });
-
-
-    if(!producto){
-
-        return;
-
-    }
-
-
-    if(
-        tipo === "salida" &&
-        cantidad > producto.stock
-    ){
-
-        alert(
-            "❌ No hay suficiente stock disponible."
-        );
-
-        return;
-
-    }
-
-
-    if(tipo === "entrada"){
-
-        producto.stock += cantidad;
-
-    }
-    else{
-
-        producto.stock -= cantidad;
-
-    }
-
-
-    movimientos.unshift({
-
-        id:Date.now(),
-
-        fecha:fechaActual(),
-
-        tipo:
-            tipo === "entrada"
-            ? "Entrada"
-            : "Salida",
-
-        producto:producto.nombre,
-
-        cantidad:cantidad,
-
-        detalle:
-            detalle ||
-            (
-                tipo === "entrada"
-                ? "Entrada de stock"
-                : "Salida de stock"
-            )
-
+    const producto = productos.find(function(p){
+        return Number(p.id) === id;
     });
 
+    if(!producto){
+        alert("❌ No se encontró el producto seleccionado.");
+        return;
+    }
 
-    guardarDatos();
+    if(tipo === "salida" && cantidad > Number(producto.stock)){
+        alert("❌ No hay suficiente stock disponible.");
+        return;
+    }
 
+    const stockAnterior = Number(producto.stock);
+    const stockNuevo = tipo === "entrada"
+        ? stockAnterior + cantidad
+        : stockAnterior - cantidad;
 
-    document.getElementById(
-        "stockCantidad"
-    ).value = "";
+    // Primero actualizamos el stock en Supabase.
+    const { error: errorStock } = await window.supabase
+        .from("productos")
+        .update({ stock: stockNuevo })
+        .eq("id", producto.id);
 
-    document.getElementById(
-        "stockDetalle"
-    ).value = "";
+    if(errorStock){
+        console.error("Error actualizando stock:", errorStock);
+        alert("❌ No se pudo actualizar el stock en Supabase. No se registró el movimiento.");
+        return;
+    }
 
+    const movimiento = {
+        fecha: fechaActual(),
+        tipo: tipo === "entrada" ? "Entrada" : "Salida",
+        producto: producto.nombre,
+        cantidad: cantidad,
+        detalle: detalle || (tipo === "entrada" ? "Entrada de stock" : "Salida de stock")
+    };
 
+    const { data: movimientoGuardado, error: errorMovimiento } =
+        await window.supabase
+            .from("movimientos")
+            .insert([movimiento])
+            .select()
+            .single();
+
+    if(errorMovimiento){
+        console.error("Error guardando movimiento:", errorMovimiento);
+
+        // Si falla el historial, intentamos devolver el stock al valor anterior.
+        const { error: errorReversion } = await window.supabase
+            .from("productos")
+            .update({ stock: stockAnterior })
+            .eq("id", producto.id);
+
+        if(errorReversion){
+            console.error("No se pudo revertir el stock:", errorReversion);
+            alert("❌ Falló el registro del movimiento y también la reversión del stock. Revisá Supabase antes de repetir la operación.");
+        } else {
+            alert("❌ No se pudo guardar el movimiento. El stock se devolvió a su valor anterior.");
+        }
+        return;
+    }
+
+    producto.stock = stockNuevo;
+    movimientos.unshift(movimientoGuardado);
+
+    document.getElementById("stockCantidad").value = "";
+    document.getElementById("stockDetalle").value = "";
     cerrarModal("modalStock");
 
-
     renderStock();
-
     renderProductos();
-
     renderDashboard();
-
     renderMovimientos();
 
-
-    alert(
-        "✅ Movimiento registrado."
-    );
-
+    alert("✅ Movimiento registrado.");
 }
-
 
 /* =====================================================
    VENTAS
 ===================================================== */
 
-function guardarVenta(){
+async function guardarVenta(){
 
-    const id =
-        Number(
-            document.getElementById(
-                "ventaProducto"
-            ).value
-        );
+    const id = Number(document.getElementById("ventaProducto").value);
+    const cantidad = Number(document.getElementById("ventaCantidad").value);
+    const precioInput = Number(document.getElementById("ventaPrecio").value);
 
-    const cantidad =
-        Number(
-            document.getElementById(
-                "ventaCantidad"
-            ).value
-        );
-
-
-    const precioInput =
-        Number(
-            document.getElementById(
-                "ventaPrecio"
-            ).value
-        );
-
-
-    if(!id || cantidad <= 0){
-
-        alert(
-            "⚠️ Seleccioná un producto y cantidad."
-        );
-
+    if(!id || !Number.isInteger(cantidad) || cantidad <= 0){
+        alert("⚠️ Seleccioná un producto y una cantidad válida.");
         return;
-
     }
 
-
-    const producto =
-        productos.find(function(p){
-
-            return p.id === id;
-
-        });
-
+    const producto = productos.find(function(p){
+        return Number(p.id) === id;
+    });
 
     if(!producto){
-
+        alert("❌ No se encontró el producto seleccionado.");
         return;
-
     }
 
-
-    if(cantidad > producto.stock){
-
-        alert(
-            "❌ No hay suficiente stock para realizar esta venta."
-        );
-
+    const stockAnterior = Number(producto.stock);
+    if(cantidad > stockAnterior){
+        alert("❌ No hay suficiente stock para realizar esta venta.");
         return;
-
     }
 
+    const precio = precioInput > 0 ? precioInput : Number(producto.precio);
+    const total = precio * cantidad;
+    const stockNuevo = stockAnterior - cantidad;
 
-    const precio =
-        precioInput > 0
-        ? precioInput
-        : producto.precio;
+    const venta = {
+        fecha: fechaActual(),
+        producto: producto.nombre,
+        cantidad: cantidad,
+        precio: precio,
+        total: total
+    };
 
+    // Guardar primero la venta.
+    const { data: ventaGuardada, error: errorVenta } =
+        await window.supabase
+            .from("ventas")
+            .insert([venta])
+            .select()
+            .single();
 
-    const total =
-        precio * cantidad;
+    if(errorVenta){
+        console.error("Error guardando venta:", errorVenta);
+        alert("❌ No se pudo guardar la venta en Supabase. El stock no se modificó.");
+        return;
+    }
 
+    // Actualizar el stock.
+    const { error: errorStock } = await window.supabase
+        .from("productos")
+        .update({ stock: stockNuevo })
+        .eq("id", producto.id);
 
-    producto.stock -= cantidad;
+    if(errorStock){
+        console.error("Error actualizando stock de venta:", errorStock);
 
+        const { error: errorBorrarVenta } = await window.supabase
+            .from("ventas")
+            .delete()
+            .eq("id", ventaGuardada.id);
 
-    ventas.unshift({
+        if(errorBorrarVenta){
+            console.error("No se pudo revertir la venta:", errorBorrarVenta);
+            alert("❌ Falló la actualización del stock y no se pudo revertir la venta. Revisá Supabase antes de repetir.");
+        } else {
+            alert("❌ No se pudo actualizar el stock. La venta se canceló.");
+        }
+        return;
+    }
 
-        id:Date.now(),
+    const movimientoVenta = {
+        fecha: ventaGuardada.fecha,
+        tipo: "Venta",
+        producto: producto.nombre,
+        cantidad: cantidad,
+        detalle: "Venta registrada"
+    };
 
-        fecha:fechaActual(),
+    const { data: movimientoGuardado, error: errorMovimiento } =
+        await window.supabase
+            .from("movimientos")
+            .insert([movimientoVenta])
+            .select()
+            .single();
 
-        producto:producto.nombre,
+    if(errorMovimiento){
+        console.error("Error guardando movimiento de venta:", errorMovimiento);
 
-        cantidad:cantidad,
+        // Intentar revertir el stock y eliminar la venta para evitar datos parciales.
+        const { error: errorRevertirStock } = await window.supabase
+            .from("productos")
+            .update({ stock: stockAnterior })
+            .eq("id", producto.id);
 
-        precio:precio,
+        const { error: errorBorrarVenta } = await window.supabase
+            .from("ventas")
+            .delete()
+            .eq("id", ventaGuardada.id);
 
-        total:total
+        if(errorRevertirStock || errorBorrarVenta){
+            console.error("Error al revertir operación:", { errorRevertirStock, errorBorrarVenta });
+            alert("❌ Falló el movimiento de venta y no se pudo revertir todo. Revisá Supabase antes de repetir.");
+        } else {
+            alert("❌ No se pudo guardar el movimiento de venta. La venta se canceló y el stock se restauró.");
+        }
+        return;
+    }
 
-    });
+    producto.stock = stockNuevo;
+    ventas.unshift(ventaGuardada);
+    movimientos.unshift(movimientoGuardado);
 
-
-    movimientos.unshift({
-
-        id:Date.now()+1,
-
-        fecha:fechaActual(),
-
-        tipo:"Venta",
-
-        producto:producto.nombre,
-
-        cantidad:cantidad,
-
-        detalle:"Venta registrada"
-
-    });
-
-
-    guardarDatos();
-
-
-    document.getElementById(
-        "ventaCantidad"
-    ).value = "";
-
-    document.getElementById(
-        "ventaPrecio"
-    ).value = "";
-
-
+    document.getElementById("ventaCantidad").value = "";
+    document.getElementById("ventaPrecio").value = "";
     cerrarModal("modalVenta");
 
-
     renderVentas();
-
     renderProductos();
-
     renderStock();
-
     renderDashboard();
-
     renderMovimientos();
 
-
-    alert(
-        "✅ Venta registrada correctamente."
-    );
-
+    alert("✅ Venta registrada correctamente.");
 }
-
 
 /* =====================================================
    RENDER VENTAS
@@ -3442,6 +3359,7 @@ function iniciarSesion() {
     }
 }
 </script>
+<script type="module" src="./app.js"></script>
 </body>
 
 </html>
